@@ -10,7 +10,9 @@ app.use(bodyParser.json());
 
 // CORS configuration
 app.use(cors({
-    origin: 'https://mchandlermembership.netlify.app/', // Replace with your frontend URL, e.g., 'https://your-frontend-site.netlify.app'
+    origin: 'https://mchandlermembership.netlify.app', // Replace with your exact frontend URL
+    methods: ['GET', 'POST'], // Allow specific HTTP methods
+    allowedHeaders: ['Content-Type'], // Allow specific headers
 }));
 
 // Nodemailer setup
@@ -30,54 +32,76 @@ app.post('/submit-form', (req, res) => {
         membershipType, preferredEvent, tshirt, hear, condition,
     } = req.body;
 
-    // Validate input (you can add more validation logic as needed)
+    // Validate input
     if (!fullname || !dob || !address || !city || !state || !zip || !phone || !email || !membershipType) {
         return res.status(400).json({ error: 'Please fill in all required fields.' });
     }
 
     console.log('Form received:', req.body);
 
-    // Schedule an auto-reply email
-    setTimeout(() => {
-        const mailOptions = {
-            from: process.env.EMAIL_USER, // Sender email address
-            to: email, // Recipient email
-            subject: 'Membership Application Confirmation',
-            text: `
-                Hello ${fullname},
-                
-                Thank you for applying for membership with Mike Chandler Management. Here are the details you provided:
+    // Send an immediate email confirmation
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: 'Membership Application Confirmation',
+        text: `
+            Hello ${fullname},
 
-                Date of Birth: ${dob}
-                Address: ${address}, ${city}, ${state}, ${zip}
-                Phone Number: ${phone}
-                Emergency Contact: ${emergencyName}, ${emergencyRelationship}, ${emergencyPhoneNumber}
-                Membership Type: ${membershipType}
-                Preferred Event(s): ${preferredEvent || 'None'}
-                T-shirt Size: ${tshirt}
-                How You Heard About Us: ${hear || 'Not specified'}
-                Medical Conditions or Accommodations: ${condition || 'None'}
+            Thank you for applying for membership with Mike Chandler Management. Here are the details you provided:
 
-                Your application has been reviewed and your member of the Mike Chandler Community.
-                If you haven't made your payment for your desired membership plan, Please make your payment so your membership profile can be activated.
+            Date of Birth: ${dob}
+            Address: ${address}, ${city}, ${state}, ${zip}
+            Phone Number: ${phone}
+            Emergency Contact: ${emergencyName}, ${emergencyRelationship}, ${emergencyPhoneNumber}
+            Membership Type: ${membershipType}
+            Preferred Event(s): ${preferredEvent || 'None'}
+            T-shirt Size: ${tshirt}
+            How You Heard About Us: ${hear || 'Not specified'}
+            Medical Conditions or Accommodations: ${condition || 'None'}
 
-                For Further enquires you contact the team through this email.
+            Your application has been received. We will follow up soon.
 
-                Best regards,
-                Mike Chandler Management
-            `,
-        };
+            Best regards,
+            Mike Chandler Management
+        `,
+    };
 
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.error('Error sending email:', error);
-            } else {
-                console.log('Email sent successfully:', info.response);
-            }
-        });
-    }, 24 * 60 * 60 * 1000); // Delay by 24 hours
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.error('Error sending email:', error);
+            return res.status(500).json({ error: 'Failed to send confirmation email.' });
+        }
+        console.log('Email sent successfully:', info.response);
 
-    res.status(200).json({ message: 'Form submitted successfully! Auto-reply email will be sent after 24 hours.' });
+        // Schedule an automated reply after 24 hours
+        setTimeout(() => {
+            const autoReplyOptions = {
+                from: process.env.EMAIL_USER,
+                to: email,
+                subject: 'Membership Application Follow-Up',
+                text: `
+                    Hello ${fullname},
+
+                    We are excited to inform you that your membership application has been accepted. If you haven’t made your payment for your desired membership plan, please do so to activate your profile.
+
+                    For further inquiries, feel free to contact us.
+
+                    Best regards,
+                    Mike Chandler Management
+                `,
+            };
+
+            transporter.sendMail(autoReplyOptions, (autoError, autoInfo) => {
+                if (autoError) {
+                    console.error('Error sending automated reply:', autoError);
+                } else {
+                    console.log('Automated reply sent successfully:', autoInfo.response);
+                }
+            });
+        }, 24 * 60 * 60 * 1000); // Delay of 24 hours
+    });
+
+    res.status(200).json({ message: 'Form submitted successfully! Confirmation email sent.' });
 });
 
 // Start the server
