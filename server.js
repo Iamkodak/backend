@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 
@@ -10,18 +11,23 @@ app.use(bodyParser.json());
 
 // CORS configuration
 app.use(cors({
-    origin: 'https://mchandlermembership.netlify.app', // Replace with your exact frontend URL
-    methods: ['GET', 'POST'], // Allow specific HTTP methods
-    allowedHeaders: ['Content-Type'], // Allow specific headers
+    origin: 'https://mchandlermembership.netlify.app', // Replace with your Netlify frontend URL
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type'],
 }));
 
 // Nodemailer setup
 const transporter = nodemailer.createTransport({
-    service: 'outlook',
+    service: 'outlook', // Change to 'gmail', 'yahoo', etc., if using a different email provider
     auth: {
         user: process.env.EMAIL_USER, // Environment variable for email address
         pass: process.env.EMAIL_PASS, // Environment variable for email password
     },
+});
+
+// Root route to avoid "Cannot GET /" error
+app.get('/', (req, res) => {
+    res.send('Welcome to the Mike Chandler Management Backend API!');
 });
 
 // Endpoint for form submission
