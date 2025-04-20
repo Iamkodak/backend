@@ -8,26 +8,23 @@ const app = express();
 // Middleware
 app.use(bodyParser.json());
 
-// CORS Configuration
+// CORS configuration
 app.use(cors({
     origin: 'https://mchandlermembership.netlify.app', // Replace with your Netlify URL
-    methods: ['GET', 'POST', 'OPTIONS'], // Allow specific methods
+    methods: ['GET', 'POST', 'OPTIONS'], // Allow specific HTTP methods
     allowedHeaders: ['Content-Type', 'Authorization'], // Allow necessary headers
 }));
 
 // Nodemailer setup
 const transporter = nodemailer.createTransport({
-    service: 'outlook', // Change to your email provider (e.g., 'gmail', 'yahoo')
+    service: 'outlook', // Change to your email provider (e.g., Gmail, Yahoo)
     auth: {
-        user: process.env.EMAIL_USER, // Email address from environment variable
-        pass: process.env.EMAIL_PASS, // Email password from environment variable
+        user: process.env.EMAIL_USER, // Environment variable for sender email
+        pass: process.env.EMAIL_PASS, // Environment variable for sender email password
     },
 });
 
-// Handle preflight requests for all routes
-app.options('*', cors());
-
-// Root route for testing backend
+// Root route (GET /) for testing backend
 app.get('/', (req, res) => {
     res.send('Welcome to the Mike Chandler Management Backend API!');
 });
@@ -40,7 +37,7 @@ app.post('/submit-form', (req, res) => {
         membershipType, preferredEvent, tshirt, hear, condition,
     } = req.body;
 
-    // Validate input
+    // Validate required fields
     if (!fullname || !email) {
         return res.status(400).json({ error: 'Full Name and Email are required fields.' });
     }
@@ -51,7 +48,7 @@ app.post('/submit-form', (req, res) => {
     // Send confirmation email
     const mailOptions = {
         from: process.env.EMAIL_USER, // Sender email address
-        to: email, // Recipient email
+        to: email, // Recipient email address
         subject: 'Membership Application Confirmation',
         text: `
             Hello ${fullname},
