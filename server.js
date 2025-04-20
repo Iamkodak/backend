@@ -9,11 +9,17 @@ const app = express();
 app.use(bodyParser.json());
 
 // CORS configuration
+const cors = require('cors');
+
 app.use(cors({
-    origin: 'https://mchandlermembership.netlify.app', // Replace with your actual Netlify URL
-    methods: ['GET', 'POST', 'OPTIONS'], // Allow specific HTTP methods
-    allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
+    origin: 'https://mchandlermembership.netlify.app', // Your Netlify URL
+    methods: ['GET', 'POST'], // Explicitly allow GET and POST methods
+    allowedHeaders: ['Content-Type', 'Authorization'], // Allow required headers
+    credentials: true, // If you need to allow cookies, etc.
 }));
+
+// Handle OPTIONS requests (preflight requests)
+app.options('*', cors());
 
 // Nodemailer setup (unchanged)
 const transporter = nodemailer.createTransport({
