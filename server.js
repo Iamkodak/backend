@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
-const cors = require('cors'); // Ensure this is imported only once
+const cors = require('cors');
 
 const app = express();
 
@@ -9,10 +9,13 @@ const app = express();
 app.use(bodyParser.json());
 
 // CORS configuration
-app.use(cors({
-    origin: 'https://mchandlermembership.netlify.app', // Replace with your actual Netlify URL
-    methods: ['GET', 'POST', 'OPTIONS'], // Allow specific HTTP methods
-    allowedHeaders: ['Content-Type', 'Authorization'], // Allow required headers
+app.use(cors()); // Enable basic CORS handling for all routes
+
+// Custom preflight handling
+app.options('*', cors({
+    origin: 'https://mchandlermembership.netlify.app', // Replace with your actual frontend URL
+    methods: ['GET', 'POST', 'OPTIONS'], // Explicitly allow these methods
+    allowedHeaders: ['Content-Type'], // Allow these headers
 }));
 
 // Nodemailer setup
