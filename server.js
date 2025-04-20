@@ -12,15 +12,18 @@ app.use(bodyParser.json());
 app.use(cors({
     origin: 'https://mchandlermembership.netlify.app', // Replace with your Netlify URL
     methods: ['GET', 'POST', 'OPTIONS'], // Allow specific HTTP methods
-    allowedHeaders: ['Content-Type', 'Authorization'], // Allow necessary headers
+    allowedHeaders: ['Content-Type'], // Allow necessary headers
 }));
+
+// Handle preflight (OPTIONS) requests for all routes
+app.options('*', cors()); // This explicitly handles preflight requests
 
 // Nodemailer setup
 const transporter = nodemailer.createTransport({
-    service: 'outlook', // Change to your email provider (e.g., Gmail, Yahoo)
+    service: 'outlook', // Update if using a different email service
     auth: {
-        user: process.env.EMAIL_USER, // Environment variable for sender email
-        pass: process.env.EMAIL_PASS, // Environment variable for sender email password
+        user: process.env.EMAIL_USER, // Sender email from environment variable
+        pass: process.env.EMAIL_PASS, // Sender password from environment variable
     },
 });
 
@@ -53,19 +56,7 @@ app.post('/submit-form', (req, res) => {
         text: `
             Hello ${fullname},
 
-            Thank you for applying for membership with Mike Chandler Management. Here are the details you provided:
-
-            Date of Birth: ${dob}
-            Address: ${address}, ${city}, ${state}, ${zip}
-            Phone Number: ${phone}
-            Emergency Contact: ${emergencyName}, ${emergencyRelationship}, ${emergencyPhoneNumber}
-            Membership Type: ${membershipType}
-            Preferred Event(s): ${preferredEvent || 'None'}
-            T-shirt Size: ${tshirt}
-            How You Heard About Us: ${hear || 'Not specified'}
-            Medical Conditions or Accommodations: ${condition || 'None'}
-
-            Your application has been received and is being reviewed. We'll follow up shortly.
+            Thank you for applying for membership with Mike Chandler Management. Your application has been received and is being reviewed. We'll follow up shortly.
 
             Best regards,
             Mike Chandler Management
