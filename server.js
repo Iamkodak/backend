@@ -7,7 +7,11 @@ const app = express();
 
 // Middleware
 app.use(bodyParser.json());
-app.use(cors());
+
+// CORS configuration
+app.use(cors({
+    origin: 'https://mchandlermembership.netlify.app/', // Replace with your frontend URL, e.g., 'https://your-frontend-site.netlify.app'
+}));
 
 // Nodemailer setup
 const transporter = nodemailer.createTransport({
@@ -54,7 +58,10 @@ app.post('/submit-form', (req, res) => {
                 How You Heard About Us: ${hear || 'Not specified'}
                 Medical Conditions or Accommodations: ${condition || 'None'}
 
-                We will review your application and respond shortly.
+                Your application has been reviewed and your member of the Mike Chandler Community.
+                If you haven't made your payment for your desired membership plan, Please make your payment so your membership profile can be activated.
+
+                For Further enquires you contact the team through this email.
 
                 Best regards,
                 Mike Chandler Management
