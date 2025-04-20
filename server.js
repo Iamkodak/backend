@@ -8,31 +8,31 @@ const app = express();
 // Middleware
 app.use(bodyParser.json());
 
-// CORS configuration
+// CORS configuration: Allow only the specified Netlify frontend origin
 app.use(cors({
     origin: 'https://mchandlermembership.netlify.app', // Replace with your Netlify URL
-    methods: ['GET', 'POST', 'OPTIONS'], // Allow specific HTTP methods
-    allowedHeaders: ['Content-Type'], // Allow necessary headers
+    methods: ['GET', 'POST', 'OPTIONS'], // Explicitly allow GET, POST, and OPTIONS methods
+    allowedHeaders: ['Content-Type', 'Authorization'], // Allow necessary headers
 }));
 
-// Handle preflight (OPTIONS) requests for all routes
-app.options('*', cors()); // This explicitly handles preflight requests
+// Handle preflight (OPTIONS) requests explicitly for all routes
+app.options('*', cors());
 
 // Nodemailer setup
 const transporter = nodemailer.createTransport({
-    service: 'outlook', // Update if using a different email service
+    service: 'outlook', // Email provider (update if needed)
     auth: {
-        user: process.env.EMAIL_USER, // Sender email from environment variable
-        pass: process.env.EMAIL_PASS, // Sender password from environment variable
+        user: process.env.EMAIL_USER, // Sender email address
+        pass: process.env.EMAIL_PASS, // Sender email password
     },
 });
 
-// Root route (GET /) for testing backend
+// Root route for testing backend connectivity
 app.get('/', (req, res) => {
-    res.send('Welcome to the Mike Chandler Management Backend API!');
+    res.send('Welcome to the Backend API!');
 });
 
-// POST /submit-form endpoint
+// POST /submit-form route for form submissions
 app.post('/submit-form', (req, res) => {
     const {
         fullname, email, dob, address, city, state, zip,
@@ -42,7 +42,7 @@ app.post('/submit-form', (req, res) => {
 
     // Validate required fields
     if (!fullname || !email) {
-        return res.status(400).json({ error: 'Full Name and Email are required fields.' });
+        return res.status(400).json({ error: 'Full Name and Email are required.' });
     }
 
     // Log form data for debugging
@@ -50,16 +50,16 @@ app.post('/submit-form', (req, res) => {
 
     // Send confirmation email
     const mailOptions = {
-        from: process.env.EMAIL_USER, // Sender email address
-        to: email, // Recipient email address
+        from: process.env.EMAIL_USER,
+        to: email,
         subject: 'Membership Application Confirmation',
         text: `
             Hello ${fullname},
 
-            Thank you for applying for membership with Mike Chandler Management. Your application has been received and is being reviewed. We'll follow up shortly.
+            Thank you for applying for membership. Your application has been received and is being reviewed. We'll follow up shortly.
 
             Best regards,
-            Mike Chandler Management
+            Management
         `,
     };
 
@@ -69,7 +69,7 @@ app.post('/submit-form', (req, res) => {
             return res.status(500).json({ error: 'Failed to send confirmation email.' });
         }
 
-        console.log('Email sent successfully:', info.response);
+        console.log('Email sent:', info.response);
         res.status(200).json({ message: 'Form submitted successfully! Confirmation email sent.' });
     });
 });
@@ -77,5 +77,5 @@ app.post('/submit-form', (req, res) => {
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server is running at http://localhost:${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });
