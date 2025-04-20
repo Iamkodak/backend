@@ -8,31 +8,28 @@ const app = express();
 // Middleware
 app.use(bodyParser.json());
 
-// Simplified and Correct CORS Configuration
+// Simplified CORS Configuration
 app.use(cors({
     origin: 'https://mchandlermembership.netlify.app', // Replace with your Netlify URL
     methods: ['GET', 'POST', 'OPTIONS'], // Allow GET, POST, and OPTIONS methods
-    allowedHeaders: ['Content-Type'], // Allow Content-Type header
+    allowedHeaders: ['Content-Type', 'Authorization'], // Allow necessary headers
 }));
-
-// Handle Preflight Requests for CORS
-app.options('*', cors()); 
 
 // Nodemailer Setup
 const transporter = nodemailer.createTransport({
-    service: 'outlook',
+    service: 'outlook', // Email service provider
     auth: {
         user: process.env.EMAIL_USER, // Sender email address
         pass: process.env.EMAIL_PASS, // Sender email password
     },
 });
 
-// Root Route for Testing Backend Connectivity
+// Root Route
 app.get('/', (req, res) => {
     res.send('Welcome to the Backend API!');
 });
 
-// POST /submit-form Route for Form Submissions
+// POST /submit-form route for form submissions
 app.post('/submit-form', (req, res) => {
     const {
         fullname, email, dob, address, city, state, zip,
@@ -42,13 +39,13 @@ app.post('/submit-form', (req, res) => {
 
     // Validate Required Fields
     if (!fullname || !email) {
-        return res.status(400).json({ error: 'Full Name and Email are required.' });
+        console.log('Validation failed: Fullname or email is missing.');
+        return res.status(400).json({ error: 'Full Name and Email are required fields.' });
     }
 
-    // Log Received Form Data
     console.log('Form data received:', req.body);
 
-    // Send Confirmation Email
+    // Prepare Email Confirmation
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: email,
@@ -56,23 +53,36 @@ app.post('/submit-form', (req, res) => {
         text: `
             Hello ${fullname},
 
-            Thank you for applying for membership. Your application has been received and is being reviewed. We'll follow up shortly.
+            Thank you for applying for membership. Here are the details you provided:
+
+            Date of Birth: ${dob}
+            Address: ${address}, ${city}, ${state}, ${zip}
+            Phone Number: ${phone}
+            Emergency Contact: ${emergencyName}, ${emergencyRelationship}, ${emergencyPhoneNumber}
+            Membership Type: ${membershipType}
+            Preferred Event(s): ${preferredEvent || 'None'}
+            T-shirt Size: ${tshirt}
+            How You Heard About Us: ${hear || 'Not specified'}
+            Medical Conditions or Accommodations: ${condition || 'None'}
+
+            Your application has been received and is being reviewed. We will follow up shortly.
 
             Best regards,
             Management
         `,
     };
 
+    // Send Confirmation Email
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-            console.error('Error sending email:', error);
-            return res.status(500).json({ error: 'Failed to send confirmation email.' });
+            console.error('Error sending email:', error); // Log the error clearly
+            return res.status(500).json({ error: 'Failed to send confirmation email.', details: error.message });
         }
-
-        console.log('Email sent:', info.response);
+        console.log('Email sent successfully:', info.response);
         res.status(200).json({ message: 'Form submitted successfully! Confirmation email sent.' });
     });
 });
+        
 
 // Start the Server
 const PORT = process.env.PORT || 3000;
