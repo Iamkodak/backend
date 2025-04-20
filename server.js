@@ -11,8 +11,8 @@ app.use(bodyParser.json());
 // CORS configuration: Allow only the specified Netlify frontend origin
 app.use(cors({
     origin: 'https://mchandlermembership.netlify.app', // Replace with your Netlify URL
-    methods: ['GET', 'POST', 'OPTIONS'], // Explicitly allow GET, POST, and OPTIONS methods
-    allowedHeaders: ['Content-Type', 'Authorization'], // Allow necessary headers
+    methods: ['GET', 'POST', 'OPTIONS'], // Allow specific HTTP methods
+    allowedHeaders: ['Content-Type'], // Allow necessary headers
 }));
 
 // Handle preflight (OPTIONS) requests explicitly for all routes
