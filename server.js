@@ -65,7 +65,7 @@ app.post('/submit-form', (req, res) => {
             How You Heard About Us: ${hear || 'Not specified'}
             Medical Conditions or Accommodations: ${condition || 'None'}
 
-            Your application has been received. We will follow up soon.
+            Your application has been received. We will follow up soon,.
 
             Best regards,
             Mike Chandler Management
