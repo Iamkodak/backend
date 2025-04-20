@@ -8,31 +8,31 @@ const app = express();
 // Middleware
 app.use(bodyParser.json());
 
-// CORS configuration: Allow only the specified Netlify frontend origin
+// CORS Configuration
 app.use(cors({
-    origin: 'https://mchandlermembership.netlify.app', // Replace with your Netlify URL
-    methods: ['GET', 'POST', 'OPTIONS'], // Allow specific HTTP methods
-    allowedHeaders: ['Content-Type'], // Allow necessary headers
+    origin: 'https://mchandlermembership.netlify.app', // Replace with your actual Netlify URL
+    methods: ['GET', 'POST', 'OPTIONS'], // Allow these HTTP methods
+    allowedHeaders: ['Content-Type'], // Allow these headers
 }));
 
-// Handle preflight (OPTIONS) requests explicitly for all routes
+// Handle Preflight (OPTIONS) Requests
 app.options('*', cors());
 
-// Nodemailer setup
+// Nodemailer Setup
 const transporter = nodemailer.createTransport({
-    service: 'outlook', // Email provider (update if needed)
+    service: 'outlook', // Use appropriate email service
     auth: {
         user: process.env.EMAIL_USER, // Sender email address
         pass: process.env.EMAIL_PASS, // Sender email password
     },
 });
 
-// Root route for testing backend connectivity
+// Root Route (GET /)
 app.get('/', (req, res) => {
     res.send('Welcome to the Backend API!');
 });
 
-// POST /submit-form route for form submissions
+// POST /submit-form Route
 app.post('/submit-form', (req, res) => {
     const {
         fullname, email, dob, address, city, state, zip,
@@ -40,15 +40,15 @@ app.post('/submit-form', (req, res) => {
         membershipType, preferredEvent, tshirt, hear, condition,
     } = req.body;
 
-    // Validate required fields
+    // Validate Required Fields
     if (!fullname || !email) {
         return res.status(400).json({ error: 'Full Name and Email are required.' });
     }
 
-    // Log form data for debugging
+    // Log Received Data
     console.log('Form data received:', req.body);
 
-    // Send confirmation email
+    // Send Confirmation Email
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: email,
@@ -56,7 +56,7 @@ app.post('/submit-form', (req, res) => {
         text: `
             Hello ${fullname},
 
-            Thank you for applying for membership. Your application has been received and is being reviewed. We'll follow up shortly.
+            Thank you for applying for membership. Your application is being reviewed. We'll follow up shortly.
 
             Best regards,
             Management
@@ -74,7 +74,7 @@ app.post('/submit-form', (req, res) => {
     });
 });
 
-// Start the server
+// Start the Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
