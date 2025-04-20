@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
-const cors = require('cors');
+const cors = require('cors'); // Ensure this is imported only once
 
 const app = express();
 
@@ -9,19 +9,13 @@ const app = express();
 app.use(bodyParser.json());
 
 // CORS configuration
-const cors = require('cors');
-
 app.use(cors({
-    origin: 'https://mchandlermembership.netlify.app', // Your Netlify URL
-    methods: ['GET', 'POST'], // Explicitly allow GET and POST methods
+    origin: 'https://mchandlermembership.netlify.app', // Replace with your actual Netlify URL
+    methods: ['GET', 'POST', 'OPTIONS'], // Allow specific HTTP methods
     allowedHeaders: ['Content-Type', 'Authorization'], // Allow required headers
-    credentials: true, // If you need to allow cookies, etc.
 }));
 
-// Handle OPTIONS requests (preflight requests)
-app.options('*', cors());
-
-// Nodemailer setup (unchanged)
+// Nodemailer setup
 const transporter = nodemailer.createTransport({
     service: 'outlook',
     auth: {
@@ -30,9 +24,8 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-// Your routes (unchanged)
+// Define the POST /submit-form route
 app.post('/submit-form', (req, res) => {
-    // Backend logic for form processing
     const { fullname, email } = req.body;
 
     if (!fullname || !email) {
