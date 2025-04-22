@@ -15,12 +15,12 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization'], // Allow required headers
 }));
 
-// Nodemailer Setup
+// Nodemailer Setup with Google App Password
 const transporter = nodemailer.createTransport({
-    service: 'gmail', // Change to your email provider
+    service: 'gmail', // Using Gmail
     auth: {
-        user: process.env.EMAIL_USER, // Sender email address
-        pass: process.env.EMAIL_PASS, // Sender email password or app-specific password
+        user: process.env.EMAIL_USER, // Your Gmail address
+        pass: process.env.EMAIL_PASS, // Your Google App Password
     },
 });
 
