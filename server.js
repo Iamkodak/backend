@@ -17,7 +17,7 @@ app.use(cors({
 
 // Nodemailer Setup
 const transporter = nodemailer.createTransport({
-    service: 'outlook', // Change to your email provider
+    service: 'gmail', // Change to your email provider
     auth: {
         user: process.env.EMAIL_USER, // Sender email address
         pass: process.env.EMAIL_PASS, // Sender email password or app-specific password
