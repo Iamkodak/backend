@@ -25,36 +25,32 @@ const transporter = nodemailer.createTransport({
 });
 
 // POST /submit-form Route for Form Submission
-app.post('/submit-form', (req, res) => {
-    const {
-        fullname, email, dob, address, city, state, zip,
-        phone, emergencyName, emergencyRelationship, emergencyPhoneNumber,
-        membershipType, preferredEvent, tshirt, hear, condition,
-    } = req.body;
+app.post('/submit-form', async (req, res) => {
+    try {
+        const {
+            fullname, email, dob, address, city, state, zip,
+            phone, emergencyName, emergencyRelationship, emergencyPhoneNumber,
+            membershipType, preferredEvent, tshirt, hear, condition,
+        } = req.body;
 
-    // Validate Required Fields
-    if (!fullname || !email) {
-        console.error('Validation failed: Full Name or Email is missing.');
-        return res.status(400).json({ error: 'Full Name and Email are required fields.' });
-    }
-
-    console.log('Form data received:', req.body);
-
-    // Send Form Data to Admin Email
-    const adminEmailOptions = {
-        from: process.env.EMAIL_USER,
-        to: process.env.EMAIL_USER, // Admin email address
-        subject: 'New Membership Application Received',
-        text: `A new membership application has been submitted:\n\n${JSON.stringify(req.body, null, 2)}`,
-    };
-
-    transporter.sendMail(adminEmailOptions, (adminError, adminInfo) => {
-        if (adminError) {
-            console.error('Error sending admin email:', adminError);
-            return res.status(500).json({ error: 'Failed to send admin email.', details: adminError.message });
+        // Validate Required Fields
+        if (!fullname || !email) {
+            console.error('Validation failed: Full Name or Email is missing.');
+            return res.status(400).json({ error: 'Full Name and Email are required fields.' });
         }
 
-        console.log('Admin email sent successfully:', adminInfo.response);
+        console.log('Form data received:', req.body);
+
+        // Send Form Data to Admin Email
+        const adminEmailOptions = {
+            from: process.env.EMAIL_USER,
+            to: process.env.EMAIL_USER, // Admin email address
+            subject: 'New Membership Application Received',
+            text: `A new membership application has been submitted:\n\n${JSON.stringify(req.body, null, 2)}`,
+        };
+
+        await transporter.sendMail(adminEmailOptions);
+        console.log('Admin email sent successfully.');
 
         // Prepare Confirmation Email for User
         const userEmailOptions = {
@@ -83,46 +79,41 @@ app.post('/submit-form', (req, res) => {
             `,
         };
 
-        // Send Confirmation Email to User
-        transporter.sendMail(userEmailOptions, (userError, userInfo) => {
-            if (userError) {
-                console.error('Error sending confirmation email:', userError);
-                return res.status(500).json({ error: 'Failed to send confirmation email.', details: userError.message });
+        await transporter.sendMail(userEmailOptions);
+        console.log('Confirmation email sent successfully.');
+
+        // Schedule Follow-Up Email
+        setTimeout(async () => {
+            const followUpEmailOptions = {
+                from: process.env.EMAIL_USER,
+                to: email,
+                subject: 'Membership Application Follow-Up',
+                text: `
+                    Hello ${fullname},
+
+                    We are excited to inform you that your membership application has been accepted. If you haven’t made your payment for your desired membership plan, please do so to activate your profile.
+
+                    For further inquiries, feel free to contact us.
+
+                    Best regards,
+                    Management
+                `,
+            };
+
+            try {
+                await transporter.sendMail(followUpEmailOptions);
+                console.log('Follow-up email sent successfully.');
+            } catch (followUpError) {
+                console.error('Error sending follow-up email:', followUpError);
             }
+        }, 2 * 60 * 60 * 1000); // Delay of 2 hours
 
-            console.log('Confirmation email sent successfully:', userInfo.response);
-
-            // Schedule Follow-Up Email
-            setTimeout(() => {
-                const followUpEmailOptions = {
-                    from: process.env.EMAIL_USER,
-                    to: email,
-                    subject: 'Membership Application Follow-Up',
-                    text: `
-                        Hello ${fullname},
-
-                        We are excited to inform you that your membership application has been accepted. If you haven’t made your payment for your desired membership plan, please do so to activate your profile.
-
-                        For further inquiries, feel free to contact us.
-
-                        Best regards,
-                        Management
-                    `,
-                };
-
-                transporter.sendMail(followUpEmailOptions, (followUpError, followUpInfo) => {
-                    if (followUpError) {
-                        console.error('Error sending follow-up email:', followUpError);
-                    } else {
-                        console.log('Follow-up email sent successfully:', followUpInfo.response);
-                    }
-                });
-            }, 2 * 60 * 60 * 1000); // Delay of 2 hours
-
-            // Respond to Client
-            res.status(200).json({ message: 'Form submitted successfully! Confirmation email sent.' });
-        });
-    });
+        // Respond to Client
+        res.status(200).json({ message: 'Form submitted successfully! Confirmation email sent.' });
+    } catch (error) {
+        console.error('Error processing form submission:', error);
+        res.status(500).json({ error: 'Internal Server Error', details: error.message });
+    }
 });
 
 // Start the Server
